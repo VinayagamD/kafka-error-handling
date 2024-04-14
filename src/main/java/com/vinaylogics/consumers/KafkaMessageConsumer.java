@@ -9,6 +9,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.annotation.RetryableTopic;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.retry.annotation.Backoff;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,8 +20,8 @@ import java.util.stream.Stream;
 @Slf4j
 public class KafkaMessageConsumer {
 
-    @RetryableTopic(attempts = "4")// 3 topic N-1
-    @KafkaListener(topics = "${app.topic.name}", groupId = "javatechie-group")
+    @RetryableTopic(attempts = "4", backoff = @Backoff(delay = 3000, multiplier = 1.5, maxDelay = 15000), exclude = {RuntimeException.class, NullPointerException.class})// 3 topic N-1
+    @KafkaListener(topics = "${app.topic.name}", groupId = "vinaylogic-group")
     public void consumeEvents(User user, @Header(KafkaHeaders.RECEIVED_TOPIC) String topic, @Header(KafkaHeaders.OFFSET) long offset) {
         try {
             log.info("Received: {} from {} offset {}", new ObjectMapper().writeValueAsString(user), topic, offset);
